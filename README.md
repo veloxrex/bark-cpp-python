@@ -69,11 +69,7 @@ encodec_eval: compute buffer size: 230.30 MB
 
 Evaluated time: 47.49s
 ```
-
-<audio controls>
-  <source src="docs/output.wav" type="audio/wav">
-  Your browser does not support the audio element.
-</audio>
+[output.webm](https://github.com/user-attachments/assets/5e1ca97c-f81f-4bc2-8118-41b007e7c33e)
 
 ## 🔧 Installation
 The current stable version of `bark.cpp` and `encodec.cpp` are using `STATIC` as the only build type for their libraries. This makes it impossible to use them as shared libraries. To work-around this, until the pull requests I've made for modification of `bark.cpp` and `encodec.cpp` are accepted, we need to modify their `CMakeLists.txt` files a bit.
