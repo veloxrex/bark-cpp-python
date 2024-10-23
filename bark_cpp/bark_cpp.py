@@ -3,16 +3,14 @@ import pathlib
 import ctypes
 from typing import NewType
 
-import numpy as np
-import numpy.typing as npt
-
 from bark_cpp._ctypes_extensions import load_shared_library, ctypes_function_for_shared_library
 
 
 # Specify the base name of the shared library to load
 _lib_base_name = "bark"
 _override_base_path = os.environ.get("BARK_CPP_LIB_PATH")
-_base_path = pathlib.Path(os.path.abspath(os.path.dirname(__file__))) / "lib" if _override_base_path is None else pathlib.Path(_override_base_path)
+_base_path = pathlib.Path(os.path.abspath(os.path.dirname(
+    __file__))) / "lib" if _override_base_path is None else pathlib.Path(_override_base_path)
 # Load the library
 _lib = load_shared_library(_lib_base_name, _base_path)
 
@@ -44,7 +42,8 @@ bark_context_p = NewType("bark_context_p", int)
 bark_context_p_ctypes = ctypes.c_void_p
 
 # typedef void (*bark_progress_callback)(struct bark_context * bctx, enum bark_encoding_step step, int progress, void * user_data);
-bark_progress_callback = ctypes.CFUNCTYPE(None, bark_context_p_ctypes, ctypes.c_int, ctypes.c_int, ctypes.c_void_p)
+bark_progress_callback = ctypes.CFUNCTYPE(
+    None, bark_context_p_ctypes, ctypes.c_int, ctypes.c_int, ctypes.c_void_p)
 
 
 class bark_context_params(ctypes.Structure):
@@ -54,7 +53,7 @@ class bark_context_params(ctypes.Structure):
         ("fine_temp", ctypes.c_float),
         ("min_eos_p", ctypes.c_float),
         ("sliding_window_size", ctypes.c_int32),
-        ("max_coarse_history", ctypes.c_int32), 
+        ("max_coarse_history", ctypes.c_int32),
         ("sample_rate", ctypes.c_int32),
         ("target_bandwidth", ctypes.c_int32),
         ("cls_token_id", ctypes.c_int32),
@@ -77,13 +76,13 @@ class bark_context_params(ctypes.Structure):
     ]
 
 
-# BARK_API struct bark_context_params bark_context_default_params(void);
+# struct bark_context_params bark_context_default_params(void);
 @ctypes_function("bark_context_default_params", [], bark_context_params)
 def bark_context_default_params() -> bark_context_params:
     ...
-    
-    
-# BARK_API struct bark_context *bark_load_model(
+
+
+# struct bark_context *bark_load_model(
 #     const char *model_path,
 #     struct bark_context_params params,
 #     uint32_t seed);
@@ -92,31 +91,42 @@ def bark_load_model(model_path: bytes, params: bark_context_params, seed: int) -
     ...
 
 
-# BARK_API bool bark_generate_audio(
+# bool bark_generate_audio(
 #     struct bark_context *bctx,
 #     const char *text,
 #     int n_threads);
 @ctypes_function("bark_generate_audio", [bark_context_p_ctypes, ctypes.c_char_p, ctypes.c_int], ctypes.c_bool)
 def bark_generate_audio(bctx: bark_context_p, char: bytes, n_threads: int) -> int:
     ...
-    
 
-# BARK_API int bark_get_audio_data_size(
+
+# int bark_get_audio_data_size(
 #     struct bark_context *bctx);
 @ctypes_function("bark_get_audio_data_size", [bark_context_p_ctypes], ctypes.c_int)
 def bark_get_audio_data_size(bctx: bark_context_p) -> int:
     ...
 
 
-
-# BARK_API float *bark_get_audio_data(
+# float *bark_get_audio_data(
 #     struct bark_context *bctx);
 @ctypes_function("bark_get_audio_data", [bark_context_p_ctypes], ctypes.POINTER(ctypes.c_float))
-def bark_get_audio_data(bctx: bark_context_p) -> npt.NDArray[np.float32]:
+def bark_get_audio_data(bctx: bark_context_p) -> ctypes.Array[ctypes.c_float]:
     ...
 
 
-# BARK_API void bark_free(struct bark_context *bctx);
+# void bark_free(struct bark_context *bctx);
 @ctypes_function("bark_free", [bark_context_p_ctypes], None)
 def bark_free(bctx: bark_context_p) -> None:
+    ...
+
+
+# int64_t bark_get_load_time(struct bark_context *bctx);
+@ctypes_function("bark_get_load_time", [bark_context_p_ctypes], ctypes.c_int64)
+def bark_get_load_time(bctx: bark_context_p) -> int:
+    ...
+
+
+# int64_t bark_get_eval_time(struct bark_context *bctx);
+@ctypes_function("bark_get_eval_time", [bark_context_p_ctypes], ctypes.c_int64)
+def bark_get_eval_time(bctx: bark_context_p) -> int:
     ...

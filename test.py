@@ -1,6 +1,7 @@
-import ctypes
+import argparse
 
-from bark_cpp.bark_cpp import bark_load_model, bark_context_default_params, bark_free, bark_get_audio_data, bark_get_audio_data_size, bark_generate_audio, bark_progress_callback
+from bark_cpp import Bark
+
 
 print(
 """
@@ -13,17 +14,62 @@ print(
 """
 )
 
+def parse_arguments():
+    """Parses command-line arguments for the Bark model."""
+    parser = argparse.ArgumentParser(description="Run the Bark audio generation model.")
 
-model_path = "/home/ductm/Work/bark.cpp/models/bark-small/ggml_weights_q4_1.bin"
+    parser.add_argument("model_path", type=str,
+                        help="Path to the Bark model file.")
+    parser.add_argument("-p", "--prompt", type=str,
+                        help="Prompt for the audio generation.")
+    parser.add_argument("--temp", type=float, default=0.7,
+                        help="Temperature for sampling (text and coarse encoders).")
+    parser.add_argument("--fine_temp", type=float, default=0.5,
+                        help="Temperature for sampling (fine encoder).")
+    parser.add_argument("--min_eos_p", type=float, default=0.2,
+                        help="Minimum probability for EOS token (text encoder).")
+    parser.add_argument("-w", "--sliding_window_size", type=int, default=60,
+                        help="Sliding window size for coarse encoder.")
+    parser.add_argument("--max_coarse_history", type=int, default=630,
+                        help="Maximum history for coarse encoder.")
+    parser.add_argument("-s", "--sample_rate", type=int, default=24000,
+                        help="Sample rate of the generated audio.")
+    parser.add_argument("-b", "--target_bandwidth", type=int, default=6,
+                        help="Target bandwidth (kbps) for the audio codec.")
+    parser.add_argument("-n", "--n_steps_text_encoder", type=int, default=768,
+                        help="Maximum number of semantic tokens to generate.")
+    parser.add_argument("--semantic_rate_hz", type=float, default=49.9,
+                        help="Semantic frequency rate.")
+    parser.add_argument("--coarse_rate_hz", type=float, default=75.0,
+                        help="Coarse frequency rate.")
+    parser.add_argument("--seed", type=int, default=0,
+                        help="Random seed for initialization.")
+    parser.add_argument("-t", "--threads", type=int, default=1,
+                        help="Number of threads to evaluate.")
+    parser.add_argument("--dest", type=str, required=False, default=None,
+                        help="Path to save the generated audio.")
+    return parser.parse_args()
 
 
-params = bark_context_default_params()
-params.progress_callback = ctypes.cast(0, bark_progress_callback)
-params.progress_callback_user_data = ctypes.cast(0, ctypes.c_void_p)
+if __name__ == "__main__":
+    args = parse_arguments()
 
-context = bark_load_model(model_path.encode("utf-8"), params, 0)
+    bark = Bark(
+        model_path=args.model_path,
+        temp=args.temp,
+        fine_temp=args.fine_temp,
+        min_eos_p=args.min_eos_p,
+        sliding_window_size=args.sliding_window_size,
+        max_coarse_history=args.max_coarse_history,
+        sample_rate=args.sample_rate,
+        target_bandwidth=args.target_bandwidth,
+        n_steps_text_encoder=args.n_steps_text_encoder,
+        semantic_rate_hz=args.semantic_rate_hz,
+        coarse_rate_hz=args.coarse_rate_hz,
+        seed=args.seed
+    )
+    audio_arr = bark.generate_audio(args.prompt, args.threads)
 
-# print(bark_get_audio_data_size(context))
-prompt = "Hello, my name is Suno. And, uh — and I like pizza. [laughs] But I also have other interests such as playing tic tac toe."
-
-is_success = bark_generate_audio(context, prompt.encode(), 1)
+    print("Evaluated time: {:.2f}s".format(bark.get_eval_time() / 1e6))
+    if args.dest:
+        bark.write_wav(args.dest, audio_arr)

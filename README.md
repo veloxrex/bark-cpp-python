@@ -8,22 +8,25 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-pink.svg)
 
 
-Python binding of [bark.cpp](https://github.com/PABannier/bark.cpp) via `ctypes`. Now you leverage the power of GGML models and their quantization version with friendly Python interface 🔥🔥🔥.
+Python bindings for [bark.cpp](https://github.com/PABannier/bark.cpp) using `ctypes`. Utilize the power of GGML with bark, one of the most popular TTS models, and its quantized versions through a friendly Python interface 🔥🔥🔥.
 
+## ⚙️ Feature
 Inpsired by [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), this package provides:
 
 * [x] Low-level access to C API via `ctypes` interface
-* [ ] High-level Python API for TTS
+* [x] High-level Python API for TTS
 
 ## 🚀 Demo
 This demo is tested on `AMD Ryzen 5 5600H`, `Ubuntu 20.04`
-```
+```bash
+$ python test.py /home/ductm/Work/bark.cpp/models/bark-small/ggml_weights_q4_1.bin -p "Hi, I am Bark. Nice to meet you" -t 8 --dest output.wav
+
                  ___       _      ___     __  ___
  /\__/\  woof   |    \    / \    |    \  |  |/  /
 /      \  woof  |    /   /   \   |    /  |     /
 \      /        |    \  /  _  \  |  _ \  |     \
  \____/         |____/ /__/ \__\ |_| |_\ |__|\__\
-
+    
 
 encodec_load_model_weights: in_channels = 1
 encodec_load_model_weights: hidden_dim  = 128
@@ -41,32 +44,39 @@ encodec_load_model_weights: using CPU backend
 encodec_load_model_weights: model size =    44.36 MB
 encodec_load_model: n_q = 32
 
-bark_tokenize_input: prompt: 'Hello, my name is Suno. And, uh — and I like pizza. [laughs] But I also have other interests such as playing tic tac toe.'
-bark_tokenize_input: number of tokens in prompt = 513, first 8 tokens: 41226 10165 25175 21372 20172 24015 20181 10167 
+bark_tokenize_input: prompt: 'Hi, I am Bark. Nice to meet you'
+bark_tokenize_input: number of tokens in prompt = 513, first 8 tokens: 30113 10165 10194 20440 30746 20222 10167 36966 
 
 
 
-bark_print_statistics:   sample time =    56.27 ms / 576 tokens
-bark_print_statistics:  predict time = 13669.80 ms / 23.73 ms per token
-bark_print_statistics:    total time = 13753.71 ms
+bark_print_statistics:   sample time =    49.21 ms / 455 tokens
+bark_print_statistics:  predict time =  3471.03 ms / 7.63 ms per token
+bark_print_statistics:    total time =  3542.42 ms
 
 
 
-bark_print_statistics:   sample time =    24.39 ms / 1728 tokens
-bark_print_statistics:  predict time = 157391.81 ms / 91.08 ms per token
-bark_print_statistics:    total time = 157428.17 ms
+bark_print_statistics:   sample time =    21.86 ms / 1364 tokens
+bark_print_statistics:  predict time = 33798.57 ms / 24.78 ms per token
+bark_print_statistics:    total time = 33829.69 ms
 
 
 
-bark_print_statistics:   sample time =    60.53 ms / 6144 tokens
-bark_print_statistics:  predict time = 31761.29 ms / 5.17 ms per token
-bark_print_statistics:    total time = 31851.84 ms
+bark_print_statistics:   sample time =    70.14 ms / 6144 tokens
+bark_print_statistics:  predict time =  8684.00 ms / 1.41 ms per token
+bark_print_statistics:    total time =  8783.56 ms
 
-encodec_eval: compute buffer size: 291.76 MB
+encodec_eval: compute buffer size: 230.30 MB
+
+Evaluated time: 47.49s
 ```
 
+<audio controls>
+  <source src="docs/output.wav" type="audio/wav">
+  Your browser does not support the audio element.
+</audio>
+
 ## 🔧 Installation
-Currently, due to `STATIC` is hard-coded in `add_library()` of `bark.cpp` and `encodec.cpp`, we need to modify the submodules a bit to work-around. The stable installation will be updated soon whenever my PRs for modification of `bark.cpp` and `encodec.cpp` are accepted.
+The current stable version of `bark.cpp` and `encodec.cpp` are using `STATIC` as the only build type for their libraries. This makes it impossible to use them as shared libraries. To work-around this, until the pull requests I've made for modification of `bark.cpp` and `encodec.cpp` are accepted, we need to modify their `CMakeLists.txt` files a bit.
 
 1. Clone the repo and submodules
 ```bash
@@ -98,7 +108,28 @@ cmake ..
 sudo make install -j8
 ```
 ## High-level Python API
-Update soon. While waiting, you can refer `test.py`
+```python
+args = parse_arguments()
+
+bark = Bark(
+        model_path=args.model_path,
+        temp=args.temp,
+        fine_temp=args.fine_temp,
+        min_eos_p=args.min_eos_p,
+        sliding_window_size=args.sliding_window_size,
+        max_coarse_history=args.max_coarse_history,
+        sample_rate=args.sample_rate,
+        target_bandwidth=args.target_bandwidth,
+        n_steps_text_encoder=args.n_steps_text_encoder,
+        semantic_rate_hz=args.semantic_rate_hz,
+        coarse_rate_hz=args.coarse_rate_hz,
+        seed=args.seed
+    )
+audio_arr = bark.generate_audio(args.prompt, args.threads)
+
+print("Evaluated time: {:.2f}s".format(bark.get_eval_time() / 1e6))
+bark.write_wav(args.dest, audio_arr)
+```
 
 ## Acknowledgments
 * [Suno AI's bark](https://github.com/suno-ai/bark)
