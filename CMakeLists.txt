@@ -37,6 +37,19 @@ function(bark_cpp_python_install target)
     endif()
 endfunction()
 
+# DEPRECATED SOON
+# Work-around solution to bypass the only-build type STATIC in bark.cpp and encodec.cpp.
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/vendor_cmakes/bark.cpp/CMakeLists.txt"
+    "${CMAKE_CURRENT_SOURCE_DIR}/vendor/bark.cpp/CMakeLists.txt"
+    COPYONLY
+)
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/vendor_cmakes/encodec.cpp/CMakeLists.txt"
+    "${CMAKE_CURRENT_SOURCE_DIR}/vendor/bark.cpp/encodec.cpp/CMakeLists.txt"
+    COPYONLY
+)
+
 set(BUILD_SHARED_LIBS ON)
 set(BARK_BUILD_EXAMPLES OFF)
 set(CMAKE_SKIP_BUILD_RPATH FALSE)

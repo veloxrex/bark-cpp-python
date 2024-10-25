@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/bark_wallpaper.png" style="max-width: 100%; height: auto;"/>
+  <img src="https://github.com/user-attachments/assets/aa10d9b8-1539-40da-a974-6d2dab6a1809" style="max-width: 100%; height: auto;"/>
 </p>
 
 # 🐶 bark-cpp-python 🐍
@@ -17,9 +17,9 @@ Inpsired by [llama-cpp-python](https://github.com/abetlen/llama-cpp-python), thi
 * [x] High-level Python API for TTS
 
 ## 🚀 Demo
-This demo is tested on `AMD Ryzen 5 5600H`, `Ubuntu 20.04`
+This demo is on `AMD Ryzen 5 5600H`, `Ubuntu 20.04`
 ```bash
-$ python test.py /home/ductm/Work/bark.cpp/models/bark-small/ggml_weights_q4_1.bin -p "Hi, I am Bark. Nice to meet you" -t 8 --dest output.wav
+$ python demo.py /home/ductm/Work/bark.cpp/models/bark-small/ggml_weights_q4_1.bin -p "Hi, I am Bark. Nice to meet you" -t 8 --dest output.wav
 
                  ___       _      ___     __  ___
  /\__/\  woof   |    \    / \    |    \  |  |/  /
@@ -72,7 +72,13 @@ Evaluated time: 47.49s
 [output.webm](https://github.com/user-attachments/assets/5e1ca97c-f81f-4bc2-8118-41b007e7c33e)
 
 ## 🔧 Installation
-The current stable version of `bark.cpp` and `encodec.cpp` are using `STATIC` as the only build type for their libraries. This makes it impossible to use them as shared libraries. To work-around this, until the pull requests I've made for modification of `bark.cpp` and `encodec.cpp` are accepted, we need to modify their `CMakeLists.txt` files a bit.
+
+### Pip
+```bash
+pip install bark-cpp-python
+```
+
+### Build from source
 
 1. Clone the repo and submodules
 ```bash
@@ -80,29 +86,27 @@ git clone --recursive https://github.com/tranminhduc4796/bark-cpp-python.git
 
 cd bark-cpp-python
 ```
-2. Modify the CMakeLists.txt of `bark.cpp` and `encodec.cpp` by replacing these lines in their CMakeLists.txt:
-```cmake
-# vendor/bark.cpp/CMakeLists.txt
-add_library(${BARK_LIB} STATIC bark.cpp bark.h)
-# vendor/bark.cpp/encodec.cpp/CMakeLists.txt
-add_library(${ENCODEC_LIB} STATIC encodec.cpp encodec.h)
-```
-with
-```cmake
-# vendor/bark.cpp/CMakeLists.txt
-option(BUILD_SHARED_LIBS OFF)
-add_library(${BARK_LIB} bark.cpp bark.h)
-# vendor/bark.cpp/encodec.cpp/CMakeLists.txt
-option(BUILD_SHARED_LIBS OFF)
-add_library(${ENCODEC_LIB} encodec.cpp encodec.h)
-```
-3. Build and install
+2. Build and install
 ```bash
-mkdir build
-cd build
-cmake ..
-sudo make install -j8
+pip install .
 ```
+
+<details>
+<summary>🤖 Debug</summary>
+
+#### GLIBCXX_3.4.32 not found
+If you meet this error when `import bark_cpp`:
+```bash
+RuntimeError: Failed to load shared library '/home/ductm/miniconda3/envs/install_bark/lib/python3.10/site-packages/bark_cpp/lib/libbark.so': /home/ductm/miniconda3/envs/install_bark/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.32' not found (required by /home/ductm/miniconda3/envs/install_bark/lib/python3.10/site-packages/bark_cpp/lib/libencodec.so)
+
+```
+Install the latest gcc with:
+```bash
+conda install -c conda-forge gcc
+```
+</details>
+
+
 ## High-level Python API
 ```python
 args = parse_arguments()
